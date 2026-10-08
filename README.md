@@ -1,29 +1,86 @@
-![Build status](https://github.com/instead-hub/instead/actions/workflows/CI.yml/badge.svg)
+# INSTEAD для Miyoo Mini / Miyoo Mini Plus (Onion OS)
 
-# INSTEAD
+Порт популярного интерпретатора текстографических квестов и визуальных новелл **[INSTEAD](https://instead-hub.github.io/)** (Simple Text Adventure, The Engine And Darkness) для портативных игровых консолей **Miyoo Mini** и **Miyoo Mini Plus** под управлением **Onion OS**.
 
-This program is covered by the terms of the MIT license.
+Движок позволяет запускать сотни русскоязычных и зарубежных квестов (включая текстовые квесты Космических Рейнджеров, игры с конкурсов КРИЛ, визуальные новеллы и парсерные приключения).
 
-Check the [COPYING](COPYING) file for license.
+---
 
-Check the [INSTALL](INSTALL) file for install instructions.
+## 🎮 Управление на консоли
 
-## Web resources
+Управление оптимизировано для удобной игры одной или двумя руками без необходимости в мыши:
 
-- [Homepage](https://instead-hub.github.io)
-- [Code](https://github.com/instead-hub/instead)
-- [Community](https://instead-games.ru)
-- [Documentation](https://instead-hub.github.io/#doc)
+| Кнопка Miyoo | Действие в игре |
+|---|---|
+| **D-Pad (Крестовина)** | Перемещение между ссылками / пунктами меню / предметами |
+| **A** | **Выбор / Подтверждение действия** (переход по ссылке, осмотр, взять предмет) |
+| **B** | **Переключение фокуса** между текстом сцены и инвентарём (в меню — возврат назад) |
+| **L1** | Прокрутка текста на страницу вверх (Page Up) |
+| **R1** | Прокрутка текста на страницу вниз (Page Down) |
+| **Start** | Меню паузы / Главное меню (сохранение, загрузка, настройки) |
+| **Select** | Отмена действия / Закрыть меню |
 
-## Install games
+---
 
-To run games you may:
+## 📦 Установка
 
-- Unzip game archive into ~/.instead/games/;
-- Or run zip-packed game: $ instead <game.zip>;
-- Or press [f4] to open file dialog (build with gtk2/gtl3 only).
+### Быстрая установка (Готовый релиз):
 
-## Contacts
+1. Скачайте архив `INSTEAD-Miyoo.zip` со страницы [Releases](https://github.com/antony-weber/instead-miyoo-mini/releases).
+2. Распакуйте архив в корень вашей SD-карты консоли (содержимое попадёт в `/App/INSTEAD/`).
+3. Вставьте SD-карту в консоль — иконка **INSTEAD** появится в разделе **Apps (Приложения)**.
 
-- Join the irc channel #instead on irc.oftc.net;
-- Check the [AUTHORS](AUTHORS) file.
+### Как добавлять квесты и игры:
+
+1. Скачайте любые понравившиеся игры с официального каталога:
+   👉 **[instead-games.ru](https://instead-games.ru/)**
+2. Игры распространяются в архивах `.zip` или `.idf`.
+3. Распакуйте папку с игрой на SD-карте по пути:
+   ```text
+   SDCARD/App/INSTEAD/games/<папка_с_игрой>/
+   ```
+   *(Внутри папки игры должен лежать файл `main3.lua` или `main.lua`)*.
+4. Запустите INSTEAD на консоли — новая игра появится в списке выбора игр меню.
+
+---
+
+## 🛠 Особенности порта и исправления
+
+- **Поддержка Sigmastar MMA Framebuffer**: Устранён фатальный сбой памяти (`SIGSEGV` в `GFX_Copy`), возникавший при анимации смены экранов (fading) на аппаратном слое 640×480 консоли.
+- **Звук и музыка в Onion OS**: Настроена интеграция с DSP-драйвером через библиотеку `libpadsp.so` Onion OS с автоматическим подбором безопасных размеров звуковых буферов SDL_mixer.
+- **Адаптация интерфейса 640×480**: Автоматическое масштабирование тем оформления и относительных путей ресурсов под нативный экран 3.5" IPS.
+- **Встроенные шрифты**: Корректный рендеринг кириллицы в темах оформления.
+
+---
+
+## 🔧 Сборка из исходников
+
+Сборка осуществляется с помощью Docker-контейнера кросс-компиляции под платформу `arm-linux-gnueabihf` (ARMv7 Cortex-A7):
+
+```bash
+# Клонирование репозитория
+git clone -b miyoo-mini https://github.com/antony-weber/instead-miyoo-mini.git
+cd instead-miyoo-mini
+
+# Сборка с флагом TARGET_MIYOO
+mkdir build_miyoo && cd build_miyoo
+cmake .. \
+  -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
+  -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ \
+  -DWITH_LUAJIT=OFF \
+  -DWITH_GTK2=OFF \
+  -DWITH_GTK3=OFF \
+  -DSTANDALONE=ON \
+  -DTARGET_MIYOO=ON \
+  -DCMAKE_BUILD_TYPE=Release
+
+make -j$(nproc)
+```
+
+Исполняемый файл `src/sdl-instead` будет скомпилирован со всеми оптимизациями для Miyoo Mini.
+
+---
+
+## Лицензия
+
+Проект распространяется под свободной лицензией **MIT License** в соответствии с оригинальным движком INSTEAD (автор: Пётр Косых / Peter Kosyh). См. файл [COPYING](COPYING).
