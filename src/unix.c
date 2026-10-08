@@ -249,12 +249,18 @@ char *appdir(void)
 #endif
 	if (appdata_sw)
 		strcpy(dir, appdata_sw);
-	if (dir[0] && !access(dir, W_OK))
+	if (dir[0]) {
+		mkdir(dir, 0755);
 		return dir;
+	}
 	pw = getpwuid(getuid());
-	if (!pw) 
-		return NULL;
-	snprintf(dir, sizeof(dir) - 1 , "%s/.instead", pw->pw_dir);
+	if (pw && pw->pw_dir) {
+		snprintf(dir, sizeof(dir) - 1 , "%s/.instead", pw->pw_dir);
+		mkdir(dir, 0755);
+		return dir;
+	}
+	strcpy(dir, "/tmp/instead");
+	mkdir(dir, 0755);
 	return dir;
 }
 

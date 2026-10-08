@@ -75,7 +75,7 @@ void game_res_err_msg(const char *filename, int alert)
 {
 	static const char preambule[] = "Can't load: ";
 	char *msg; unsigned int s;
-	if (!filename || (!*filename && !alert))
+	if (!filename || !*filename)
 		return;
 	if (alert && curgame_dir) {
 		s = sizeof(preambule) + strlen(filename) + 2;
@@ -1072,10 +1072,12 @@ int game_init(const char *name)
 	getdir(game_cwd, sizeof(game_cwd));
 	unix_path(game_cwd);
 
-	if (game_select(name))
+	if (game_select(name)) {
 		return -1;
-	if (game_theme_optimize())
+	}
+	if (game_theme_optimize()) {
 		return -1;
+	}
 
 	if (game_apply_theme()) {
 		game_theme_select(DEFAULT_THEME);
@@ -3377,7 +3379,12 @@ static int kbd_modifiers(struct inp_event *ev)
 {
 	if (ev->type != KEY_DOWN && ev->type != KEY_UP)
 		return 0;
+#if defined(TARGET_MIYOO)
+	/* On Miyoo Mini, Left Alt is mapped to button B */
+	if (!is_key(ev, "right alt")) {
+#else
 	if (!is_key(ev, "left alt") || !is_key(ev, "right alt")) {
+#endif
 		alt_pressed = (ev->type == KEY_DOWN);
 		return 1;
 	} else if (!is_key(ev, "left shift") || !is_key(ev, "right shift")) {
@@ -3471,8 +3478,13 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 #endif
 	} else if (DIRECT_MODE && !menu_shown) {
 		; /* nothing todo */
+#if defined(TARGET_MIYOO)
+	} else if (!alt_pressed && (!is_key(ev, "return") || !is_key(ev, "enter") ||
+				    !is_key(ev, "space"))) {
+#else
 	} else if (!alt_pressed && (!is_key(ev, "return") || !is_key(ev, "enter")
 				    )) {
+#endif
 		gfx_cursor(x, y);
 		game_highlight(-1, -1, 0); /* reset */
 
@@ -3484,8 +3496,17 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 			game_running = 0;
 			return -1;
 		}
+#if defined(TARGET_MIYOO)
+	} else if (!is_key(ev, "tab") || !is_key(ev, "left alt")) {
+		if (menu_shown && curgame_dir) {
+			menu_toggle(-1);
+		} else {
+			select_frame(shift_pressed);
+		}
+#else
 	} else if (!is_key(ev, "tab")) {
 		select_frame(shift_pressed);
+#endif
 	} else if (!is_key(ev, "up") || !is_key(ev, "down") ||
 		   !is_key(ev, "[8]") || !is_key(ev, "[2]")) {
 
@@ -3535,10 +3556,17 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 		select_ref(1, 0);
 	} else if (!is_key(ev, "right") || !is_key(ev, "[6]")) {
 		select_ref(0, 0);
+#if defined(TARGET_MIYOO)
+	} else if ((!is_key(ev, "backspace") || !is_key(ev, "e")) && !menu_shown) {
+		scroll_pup(el_scene);
+	} else if ((!is_key(ev, "t")) && !menu_shown) {
+		scroll_pdown(el_scene);
+#else
 	} else if (!is_key(ev, "backspace") && !menu_shown) {
 		scroll_pup(el_scene);
 	} else if (!is_key(ev, "space") && !menu_shown) {
 		scroll_pdown(el_scene);
+#endif
 	} else
 		return 0;
 	return 1;

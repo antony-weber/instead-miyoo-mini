@@ -1830,8 +1830,10 @@ int gfx_get_max_mode(int *w, int *h, int o)
 		}
 		i ++;
 	}
-	if (*w == 0 || *h == 0) /* no suitable mode */
-		return -1;
+	if (*w <= 0 || *h <= 0) {
+		*w = 640;
+		*h = 480;
+	}
 	return 0;
 }
 
@@ -2079,9 +2081,11 @@ int gfx_set_mode(int w, int h, int fs)
 	fs = 1; /* always fs for mobiles */
 #endif
 	if (fs && !software_sw) {
-		win_w = max_mode_w;
-		win_h = max_mode_h;
+		win_w = (max_mode_w > 0) ? max_mode_w : 640;
+		win_h = (max_mode_h > 0) ? max_mode_h : 480;
 	}
+	if (win_w <= 0) win_w = 640;
+	if (win_h <= 0) win_h = 480;
 	if (gfx_width == w && gfx_height == h && gfx_fs == fs) {
 		game_reset_name();
 #if defined(ANDROID)
@@ -5637,6 +5641,12 @@ void gfx_cancel_change_screen(void)
 void gfx_change_screen(img_t src, int steps, void (*callback)(void *), void *aux)
 {
 	struct inp_event ev;
+#if defined(TARGET_MIYOO)
+	/* On Miyoo Mini, hardware renderer only supports 640x480 textures.
+	 * Larger or dynamically allocated fading textures overflow GFX_Copy
+	 * and crash with SIGSEGV. Bypass texture fading and do direct copy. */
+	steps = 0;
+#endif
 	if (steps <= 1 || !opt_fading) {
 		gfx_copy(src, 0, 0);
 		game_cursor(CURSOR_ON);

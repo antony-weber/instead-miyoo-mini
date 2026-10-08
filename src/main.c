@@ -41,6 +41,49 @@
 #include <windows.h>
 #endif
 
+#if defined(TARGET_MIYOO)
+#include <signal.h>
+#include <execinfo.h>
+#ifdef __arm__
+#define _GNU_SOURCE
+#include <ucontext.h>
+#endif
+
+static void crash_handler(int sig, siginfo_t *info, void *ucontext)
+{
+	void *bt[32];
+	int nptrs;
+	fprintf(stderr, "\n*** CRASH: Caught signal %d (%s) at address %p ***\n",
+		sig, (sig == SIGSEGV) ? "SIGSEGV" : ((sig == SIGBUS) ? "SIGBUS" : "UNKNOWN"),
+		info ? info->si_addr : NULL);
+#ifdef __arm__
+	if (ucontext) {
+		ucontext_t *uc = (ucontext_t *)ucontext;
+		fprintf(stderr, "ARM REGISTERS: PC=%p, LR=%p, SP=%p, CPSR=0x%lx\n",
+			(void*)uc->uc_mcontext.arm_pc,
+			(void*)uc->uc_mcontext.arm_lr,
+			(void*)uc->uc_mcontext.arm_sp,
+			(unsigned long)uc->uc_mcontext.arm_cpsr);
+	}
+#endif
+	fflush(stderr);
+	nptrs = backtrace(bt, 32);
+	fprintf(stderr, "=== BACKTRACE (%d frames) ===\n", nptrs);
+	backtrace_symbols_fd(bt, nptrs, 2);
+	fprintf(stderr, "=== MEMORY MAPS ===\n");
+	FILE *f = fopen("/proc/self/maps", "r");
+	if (f) {
+		char line[256];
+		while (fgets(line, sizeof(line), f)) {
+			fputs(line, stderr);
+		}
+		fclose(f);
+	}
+	fflush(stderr);
+	_exit(128 + sig);
+}
+#endif
+
 extern int debug_init(void);
 extern void debug_done(void);
 extern luaL_Reg paths_funcs[];
@@ -332,6 +375,18 @@ int instead_main(int argc, char *argv[])
 	putenv("SDL_MOUSE_RELATIVE=0"); /* test this! */
 #if GTK_MAJOR_VERSION == 4 /* fix crash when SDL2 uses gl */
 	putenv("GDK_DEBUG=gl-disable");
+#endif
+#if defined(TARGET_MIYOO)
+	{
+		struct sigaction sa;
+		memset(&sa, 0, sizeof(sa));
+		sa.sa_flags = SA_SIGINFO;
+		sa.sa_sigaction = crash_handler;
+		sigaction(SIGSEGV, &sa, NULL);
+		sigaction(SIGBUS, &sa, NULL);
+		sigaction(SIGILL, &sa, NULL);
+		sigaction(SIGFPE, &sa, NULL);
+	}
 #endif
 
 #if defined(APPIMAGE)

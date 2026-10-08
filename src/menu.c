@@ -264,7 +264,8 @@ static void games_menu(void)
 			snprintf(tmp, sizeof(tmp), "<l><a:/resume><b>%s</b></a></l>", games[i].name);
 		else
 			snprintf(tmp, sizeof(tmp), "<l><a:%s>%s</a></l>", games[i].dir, games[i].name);
-		if (!strncmp(game_local_games_path(0), games[i].path, strlen(game_local_games_path(0))) &&
+		const char *local_p = game_local_games_path(0);
+		if (local_p && !strncmp(local_p, games[i].path, strlen(local_p)) &&
 			!access(games[i].path, W_OK)) {
 			snprintf(tmp + strlen(tmp), sizeof(tmp), " [<a:/remove_%d>X</a>]\n", i);
 		} else
@@ -846,6 +847,7 @@ int game_menu_act(const char *a)
 				game_error();
 			}
 			free(p);
+			return 0;
 		}
 	} else if (cur_menu == menu_themes) {
 		char *p;

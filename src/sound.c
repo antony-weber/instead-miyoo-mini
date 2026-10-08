@@ -33,11 +33,11 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
-int audio_rate = 22050;
+int audio_rate = 44100;
 
 Uint16 audio_format = MIX_DEFAULT_FORMAT;
 int audio_channels = 2;
-int audio_buffers = 8192;
+int audio_buffers = 2048;
 
 static mus_t mus;
 static char *next_mus = NULL;
@@ -112,18 +112,22 @@ static int _snd_open(int hz)
 		hz = audio_rate;
 	else
 		audio_rate = hz;
-	chunk = (chunksize_sw>0)?chunksize_sw:DEFAULT_CHUNKSIZE;
+	chunk = (chunksize_sw>0)?chunksize_sw:256;
 	audio_buffers = (audio_rate / 11025) * chunk;
-	if (audio_buffers <= 0) /* wrong parameter? */
-		audio_buffers = DEFAULT_CHUNKSIZE;
+	if (audio_buffers <= 0 || audio_buffers > 1024)
+		audio_buffers = 1024;
 #ifdef __EMSCRIPTEN__
 	if (Mix_OpenAudioDevice(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 4096, NULL, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE)) {
 #else
-	if (Mix_OpenAudio(hz, audio_format, audio_channels, audio_buffers)) {
-#endif
-		fprintf(stderr, "Unable to open audio!\n");
+	if (Mix_OpenAudio(hz, audio_format, audio_channels, audio_buffers) &&
+	    Mix_OpenAudio(hz, audio_format, audio_channels, 2048) &&
+	    Mix_OpenAudio(hz, audio_format, audio_channels, 512) &&
+	    Mix_OpenAudio(hz, audio_format, audio_channels, 4096)) {
+		fprintf(stderr, "Unable to open audio (%d Hz, buf=%d): %s\n", hz, audio_buffers, Mix_GetError());
+		sound_on = 0;
 		return -1;
 	}
+#endif
 	sound_on = 1;
 	Mix_ChannelFinished(game_channel_finished);
 	return 0;
@@ -171,7 +175,7 @@ int snd_open(int hz)
 int snd_init(int hz)
 {
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Unable to init audio!\n");
+		fprintf(stderr, "Unable to init audio subsystem: %s\n", SDL_GetError());
 		return -1;
 	}
 	return snd_open(hz);
