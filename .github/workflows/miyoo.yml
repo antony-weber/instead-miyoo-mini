@@ -90,13 +90,13 @@ jobs:
           body: |
             ### INSTEAD for Miyoo Mini / Miyoo Mini Plus (Onion OS)
             
-            **Установка:**
-            1. Скачайте архив `INSTEAD-Miyoo.zip` ниже.
-            2. Распакуйте архив в корень SD-карты консоли (папка `App/INSTEAD/`).
-            3. Запустите INSTEAD из меню Apps на консоли.
+            **Installation / Установка:**
+            - **EN:** Download `INSTEAD-Miyoo.zip`, extract into the root of your SD card (into `App/INSTEAD/`). Launch from **Apps**.
+            - **RU:** Скачайте `INSTEAD-Miyoo.zip`, распакуйте в корень SD-карты (в `App/INSTEAD/`). Запустите из меню **Apps**.
             
-            **Игры:**
-            Скачивайте квесты с [instead-games.ru](https://instead-games.ru/) и распаковывайте в `App/INSTEAD/games/<папка_игры>/`.
+            **Games / Игры:**
+            - Download games from [instead-games.ru](https://instead-games.ru/) and extract to `App/INSTEAD/games/<game_folder>/`.
+            - Скачивайте квесты с [instead-games.ru](https://instead-games.ru/) и распаковывайте в `App/INSTEAD/games/<папка_игры>/`.
           draft: false
           prerelease: false
           make_latest: true
