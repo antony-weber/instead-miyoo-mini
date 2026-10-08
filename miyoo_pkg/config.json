@@ -1,6 +1,6 @@
 {
 	"label":	"INSTEAD",
-	"icon":	"/mnt/SDCARD/App/INSTEAD/icon.png",
+	"icon":	"/mnt/SDCARD/Themes/M by tenlevels/icons/app/instead.png",
 	"launch":	"launch.sh",
 	"description":	"Simple Text Adventure"
 }
