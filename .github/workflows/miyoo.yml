@@ -98,4 +98,5 @@ jobs:
             **Игры:**
             Скачивайте квесты с [instead-games.ru](https://instead-games.ru/) и распаковывайте в `App/INSTEAD/games/<папка_игры>/`.
           draft: false
-          prerelease: true
+          prerelease: false
+          make_latest: true
