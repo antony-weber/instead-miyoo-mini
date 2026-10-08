@@ -8,6 +8,9 @@ on:
     branches: [ miyoo-mini, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-miyoo:
     name: Build INSTEAD for Miyoo Mini (ARMhf)
@@ -83,6 +86,16 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: INSTEAD-Miyoo.zip
+          name: INSTEAD ${{ github.ref_name }}
+          body: |
+            ### INSTEAD for Miyoo Mini / Miyoo Mini Plus (Onion OS)
+            
+            **Установка:**
+            1. Скачайте архив `INSTEAD-Miyoo.zip` ниже.
+            2. Распакуйте архив в корень SD-карты консоли (папка `App/INSTEAD/`).
+            3. Запустите INSTEAD из меню Apps на консоли.
+            
+            **Игры:**
+            Скачивайте квесты с [instead-games.ru](https://instead-games.ru/) и распаковывайте в `App/INSTEAD/games/<папка_игры>/`.
           draft: false
-          prerelease: false
-          generate_release_notes: true
+          prerelease: true
