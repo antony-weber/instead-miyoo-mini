@@ -2715,10 +2715,12 @@ void game_cursor(int on)
 
 		w = gfx_img_w(cur);
 		h = gfx_img_h(cur);
-
-		grab = gfx_grab_screen(xc, yc, w, h);
-		if (!nocursor_sw && mouse_focus() && (game_cursor_show || menu_shown))
+		if (!nocursor_sw && mouse_focus() && (game_cursor_show || menu_shown)) {
+			grab = gfx_grab_screen(xc, yc, w, h);
 			gfx_draw(cur, xc, yc);
+		} else {
+			grab = NULL;
+		}
 
 		if (on != CURSOR_DRAW) {
 			_game_update(xc, yc, w, h);
