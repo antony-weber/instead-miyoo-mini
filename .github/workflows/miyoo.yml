@@ -1,0 +1,88 @@
+name: Build Miyoo Mini Release
+
+on:
+  push:
+    branches: [ miyoo-mini, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ miyoo-mini, master ]
+  workflow_dispatch:
+
+jobs:
+  build-miyoo:
+    name: Build INSTEAD for Miyoo Mini (ARMhf)
+    runs-on: ubuntu-latest
+    container:
+      image: debian:buster
+
+    steps:
+      - name: Setup Debian Buster Repositories
+        run: |
+          echo "deb http://archive.debian.org/debian buster main" > /etc/apt/sources.list
+          echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
+          dpkg --add-architecture armhf
+          apt-get update -qq
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            crossbuild-essential-armhf \
+            cmake \
+            pkg-config \
+            zip \
+            git \
+            ca-certificates \
+            libsdl2-dev:armhf \
+            libsdl2-ttf-dev:armhf \
+            libsdl2-image-dev:armhf \
+            libsdl2-mixer-dev:armhf \
+            liblua5.1-0-dev:armhf \
+            zlib1g-dev:armhf
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build sdl-instead
+        run: |
+          mkdir -p build_miyoo && cd build_miyoo
+          cmake .. \
+            -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
+            -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ \
+            -DCMAKE_FIND_ROOT_PATH=/usr/arm-linux-gnueabihf \
+            -DWITH_LUAJIT=OFF \
+            -DWITH_GTK2=OFF \
+            -DWITH_GTK3=OFF \
+            -DSTANDALONE=ON \
+            -DTARGET_MIYOO=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath-link=/usr/lib/arm-linux-gnueabihf"
+          make -j$(nproc)
+          make install
+
+      - name: Assemble Miyoo Package
+        run: |
+          mkdir -p package/App/INSTEAD
+          # Copy standalone files from build
+          cp -r build_miyoo/standalone/* package/App/INSTEAD/
+          # Copy packaged launcher, assets and runtime libraries
+          cp -r miyoo_pkg/* package/App/INSTEAD/
+          # Ensure execution rights
+          chmod +x package/App/INSTEAD/launch.sh package/App/INSTEAD/sdl-instead
+          # Create distributable zip archive
+          cd package
+          zip -r ../INSTEAD-Miyoo.zip App/
+          cd ..
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: INSTEAD-Miyoo
+          path: INSTEAD-Miyoo.zip
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: INSTEAD-Miyoo.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true

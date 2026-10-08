@@ -1,0 +1,6 @@
+{
+	"label":	"INSTEAD",
+	"icon":	"/mnt/SDCARD/App/INSTEAD/icon.png",
+	"launch":	"launch.sh",
+	"description":	"Simple Text Adventure"
+}
