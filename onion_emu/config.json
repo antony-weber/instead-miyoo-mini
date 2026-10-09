@@ -1,0 +1,12 @@
+{
+  "label": "INSTEAD",
+  "icon": "icon.png",
+  "iconsel": "icon.png",
+  "launch": "launch.sh",
+  "rompath": "../../Roms/INSTEAD",
+  "imgpath": "../../Roms/INSTEAD/Imgs",
+  "useswap": 0,
+  "shortname": 0,
+  "hidebios": 1,
+  "extlist": "zip|idf"
+}

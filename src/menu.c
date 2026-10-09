@@ -440,6 +440,10 @@ char *game_menu_gen(void)
 {
 	if (cur_menu == menu_main) {
 		strcpy(menu_buff, MAIN_MENU);
+#if defined(TARGET_MIYOO)
+		menu_strip_tag("<?:select>", "</?>");
+		menu_strip_tag("<?:themes>", "</?>");
+#else
 		if (standalone_sw) {
 			int count = 0, n;
 			menu_strip_tag("<?:select>", "</?>");
@@ -458,6 +462,7 @@ char *game_menu_gen(void)
 			menu_remove_tag("<?:select>", "</?>");
 			menu_remove_tag("<?:themes>", "</?>");
 		}
+#endif
 	} else if (cur_menu == menu_about || cur_menu == menu_about_instead) {
 		struct game *g;
 		if (cur_menu == menu_about && curgame_dir && (g = game_lookup(curgame_dir))) {
@@ -671,7 +676,11 @@ int game_menu_act(const char *a)
 		}
 		game_menu_box(1, game_menu_gen());
 	} else if (!strcmp(a, "/select")) {
+#if defined(TARGET_MIYOO)
+		return 0;
+#else
 		game_menu(menu_games);
+#endif
 	} else if (!strcmp(a, "/remove")) {
 		fprintf(stderr,"Removing '%s'\n", games[gtr].path);
 		if (curgame_dir && !strcmp(curgame_dir, games[gtr].dir)) {

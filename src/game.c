@@ -3421,9 +3421,9 @@ static int is_key_back(struct inp_event *ev)
 #if defined(TARGET_MIYOO)
 	/* On Miyoo Mini:
 	 * Menu button (Escape) exits with save.
-	 * X (Left Shift) and R2 (Backspace) perform in-game cancel / deselect.
+	 * X (Left Shift), Y (Left Alt) perform in-game cancel / deselect.
 	 */
-	if (!is_key(ev, "left shift") || !is_key(ev, "backspace"))
+	if (!is_key(ev, "left shift") || !is_key(ev, "left alt"))
 		return 0;
 #else
 	if (!is_key(ev, "escape")
@@ -3485,7 +3485,11 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 	} else if (!is_key(ev, "f12") && curgame_dir && !menu_shown) {
 		input_text(!(input_text(-1) > 0));
 #endif
-	} else if (!is_key(ev, "f5") && curgame_dir && !menu_shown) {
+	} else if ((!is_key(ev, "f5")
+#if defined(TARGET_MIYOO)
+		   || !is_key(ev, "backspace") /* R2 button triggers Look / context inspect */
+#endif
+		   ) && curgame_dir && !menu_shown) {
 		mouse_reset(1);
 		game_cmd("look", 0);
 	} else if ((alt_pressed || control_pressed) && !is_key(ev, "r") && curgame_dir && !menu_shown && debug_sw) {
