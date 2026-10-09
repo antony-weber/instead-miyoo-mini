@@ -568,6 +568,17 @@ static img_t	gfx_new_img(SDL_Surface *s, int fl, void *data, int release)
 	return i;
 }
 
+img_t	gfx_clone(img_t img)
+{
+	img_t p;
+	if (!img)
+		return NULL;
+	p = GFX_IMG(Surf(img));
+	if (p)
+		Surf(img)->refcount ++;
+	return p;
+}
+
 img_t   gfx_new_rgba(int w, int h)
 {
 	SDL_Surface *dst;
@@ -3709,7 +3720,7 @@ int gfx_get_token(const char *ptr, char **eptr, char **val, int *sp)
 			return 0;
 		ptr += 2;
 		ep = find_in_esc(ptr, "\\>");
-		if (*ep != '>')
+		if (!ep || *ep != '>')
 			return 0;
 		if (val) {
 			p = malloc(ep - ptr + 1);

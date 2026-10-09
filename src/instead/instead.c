@@ -391,7 +391,7 @@ int instead_function(char *s, struct instead_args *args)
 	int method = 0;
 	if (!L)
 		return -1;
-	strcpy(f, s);
+	snprintf(f, sizeof(f), "%s", s);
 	p = strchr(f, '.');
 	if (!p)
 		p = strchr(f, ':');
@@ -570,7 +570,6 @@ int instead_load(char **info)
 		goto err2;
 	if (info) {
 		*info = instead_retval(0);
-		*info = instead_fromgame(*info);
 	}
 	instead_clear();
 	return rc;
@@ -791,7 +790,7 @@ static int luaB_get_realpath(lua_State *L) {
 	const char *path = luaL_optstring(L, 1, NULL);
 	if (!path)
 		return 0;
-	strncpy(realpath, path, sizeof(realpath));
+	strncpy(realpath, path, sizeof(realpath) - 1);
 	realpath[sizeof(realpath) - 1] = 0;
 	unix_path(realpath);
 	path = getrealpath(realpath, outpath);
@@ -1107,6 +1106,8 @@ static int instead_detect_api(const char *path)
 		if (api)
 			goto out;
 		p = getfilepath(path, INSTEAD_MAIN);
+		if (!p)
+			return -1;
 		if (!access(dirpath(p), R_OK))
 			api = 2;
 		free(p);
@@ -1148,7 +1149,7 @@ int instead_init_lua(const char *path, int detect)
 	unix_path(instead_cwd_path);
 	instead_cwd_path[sizeof(instead_cwd_path) - 1] = 0;
 	strncpy(instead_game_path, path, sizeof(instead_game_path) - 1);
-	instead_cwd_path[sizeof(instead_game_path) - 1] = 0;
+	instead_game_path[sizeof(instead_game_path) - 1] = 0;
 
 	if (detect && (api = instead_detect_api(path)) < 0) {
 		fprintf(stderr, "Can not detect game format: %s\n", path);

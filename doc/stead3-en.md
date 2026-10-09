@@ -22,10 +22,6 @@ STEAD3. Other resources may be helpful to you such as the INSTEAD website:
 
 https://instead-hub.github.io
 
-We also have a chat room on gitter:
-
-https://gitter.im/instead-hub/instead
-
 ### The story of creation
 
 When we say "text adventure" most of the people there one of the two familiar
@@ -3340,6 +3336,17 @@ require a more flexible output control, you can do the following:
 - Use the module 'fonts', which implements the rendering different fonts at
   the expense module 'sprite';
 - Use another engine, because most likely you use INSTEAD for other purposes.
+
+### Substitution $fmt
+
+There is a more convenient way to insert formatting and layout into text.
+To do this, you can use the $fmt substitution. For example:
+
+    p "{$fmt b|Boom!"};
+    p "{$fmt tab 50% centre|}{$fmt b|{$fmt nb|Hello, world!}}"
+
+As you can see from the example, you can use the formatting and layout functions
+as $fmt templates and place them directly in the text.
 
 ## Constructors and inheritance
 

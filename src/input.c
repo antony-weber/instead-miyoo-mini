@@ -362,7 +362,7 @@ static int gamepad_map(struct inp_event *inp)
 	default:
 		return 0;
 	}
-	strncpy(inp->sym, key, sizeof(inp->sym));
+	strncpy(inp->sym, key, sizeof(inp->sym) - 1);
 	inp->sym[sizeof(inp->sym) - 1] = 0;
 	return 1;
 }
@@ -483,7 +483,7 @@ int input(struct inp_event *inp, int wait)
 	switch(event.type){
 	case SDL_TEXTINPUT:
 		inp->type = KEY_TEXT;
-		strncpy(inp->sym, event.text.text, sizeof(inp->sym));
+		strncpy(inp->sym, event.text.text, sizeof(inp->sym) - 1);
 		inp->sym[sizeof(inp->sym) - 1] = 0;
 		break;
 	case SDL_MULTIGESTURE:
@@ -624,7 +624,7 @@ int input(struct inp_event *inp, int wait)
 		}
 		inp->type = KEY_DOWN;
 		inp->code = event.key.keysym.scancode;
-		strncpy(inp->sym, SDL_GetScancodeName(inp->code), sizeof(inp->sym));
+		strncpy(inp->sym, SDL_GetScancodeName(inp->code), sizeof(inp->sym) - 1);
 		inp->sym[sizeof(inp->sym) - 1] = 0;
 		tolow(inp->sym);
 		key_compat(inp);
@@ -637,7 +637,7 @@ int input(struct inp_event *inp, int wait)
 	case SDL_KEYUP:
 		inp->type = KEY_UP;
 		inp->code = event.key.keysym.scancode;
-		strncpy(inp->sym, SDL_GetScancodeName(inp->code), sizeof(inp->sym));
+		strncpy(inp->sym, SDL_GetScancodeName(inp->code), sizeof(inp->sym) - 1);
 		inp->sym[sizeof(inp->sym) - 1] = 0;
 		tolow(inp->sym);
 		key_compat(inp);
@@ -676,9 +676,9 @@ int input(struct inp_event *inp, int wait)
 		inp->type = (event.wheel.y > 0) ? MOUSE_WHEEL_UP : MOUSE_WHEEL_DOWN;
 
 		while (SDL_PeepEvents(&peek, 1, SDL_GETEVENT, SDL_MOUSEWHEEL, SDL_MOUSEWHEEL) > 0) {
-			if (!((event.wheel.y > 0 &&
+			if (!((peek.wheel.y > 0 &&
 				inp->type == MOUSE_WHEEL_UP) ||
-				(event.wheel.y < 0 &&
+				(peek.wheel.y < 0 &&
 				inp->type == MOUSE_WHEEL_DOWN)))
 				break;
 			inp->count ++;
@@ -695,9 +695,9 @@ int input(struct inp_event *inp, int wait)
 		else if (event.button.button == 5)
 			inp->type = MOUSE_WHEEL_DOWN;
 		while (SDL_PeepEvents(&peek, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN) > 0) {
-			if (!((event.button.button == 4 &&
+			if (!((peek.button.button == 4 &&
 				inp->type == MOUSE_WHEEL_UP) ||
-				(event.button.button == 5 &&
+				(peek.button.button == 5 &&
 				inp->type == MOUSE_WHEEL_DOWN)))
 				break;
 			inp->count ++;

@@ -267,7 +267,8 @@ static void games_menu(void)
 		const char *local_p = game_local_games_path(0);
 		if (local_p && !strncmp(local_p, games[i].path, strlen(local_p)) &&
 			!access(games[i].path, W_OK)) {
-			snprintf(tmp + strlen(tmp), sizeof(tmp), " [<a:/remove_%d>X</a>]\n", i);
+			size_t len = strlen(tmp);
+			snprintf(tmp + len, sizeof(tmp) - len, " [<a:/remove_%d>X</a>]\n", i);
 		} else
 			strcat(tmp, "\n");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2023 Peter Kosyh <p.kosyh at gmail.com>
+ * Copyright 2009-2026 Peter Kosyh <pkosyh at yandex.ru>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation files
@@ -112,7 +112,12 @@ static _spr_t *sprite_new(const char *name, img_t img)
 		free(sp);
 		return NULL;
 	}
+
+	if (!cache_forget(gfx_image_cache(), img)) /* was taken from cache? */
+		img = gfx_clone(img);
+
 	sp->img = img;
+
 	if (cache_add(gfx_image_cache(), name, img)) {
 		free(sp->name);
 		free(sp);
@@ -215,7 +220,14 @@ static int luaB_load_sprite(lua_State *L) {
 			desc = luaL_optstring(L, 3, NULL);
 		}
 		if (convert) { /* slow path */
-			img = gfx_new_from(pixels->w, pixels->h, (unsigned char*)(pixels + 1));
+			img_t wrap = gfx_new_from(pixels->w, pixels->h,
+				(unsigned char*)(pixels + 1));
+			if (wrap) {
+				/* wrap borrows Lua-owned pixels: take a copy,
+				   the userdata may be collected at any time */
+				img = gfx_dup(wrap);
+				gfx_free_image(wrap);
+			}
 			if (img)
 				theme_gfx_scale(&img, pixels->scale);
 		} else {
@@ -243,7 +255,7 @@ static int luaB_load_sprite(lua_State *L) {
 	if (!sp)
 		goto err;
 
-	lua_pushstring(L, key);
+	lua_pushstring(L, sp->name);
 	return 1;
 err:
 	game_res_err_msg(fname, debug_sw);
@@ -374,7 +386,7 @@ static int luaB_text_sprite(lua_State *L) {
 
 	if (!desc || sprite_lookup(desc)) {
 		key = sname;
-		strncpy(txtkey, text, sizeof(txtkey));
+		strncpy(txtkey, text, sizeof(txtkey) - 1);
 		txtkey[sizeof(txtkey) - 1] = 0;
 		sprite_name(txtkey, sname, sizeof(sname));
 	} else
@@ -385,7 +397,7 @@ static int luaB_text_sprite(lua_State *L) {
 	if (!sp)
 		goto err;
 
-	lua_pushstring(L, key);
+	lua_pushstring(L, sp->name);
 	return 1;
 err:
 	gfx_free_image(img);
@@ -573,7 +585,7 @@ static int luaB_alpha_sprite(lua_State *L) {
 	sp = sprite_new(key, img2);
 	if (!sp)
 		goto err;
-	lua_pushstring(L, sname);
+	lua_pushstring(L, sp->name);
 	return 1;
 err:
 	gfx_free_image(img2);
@@ -632,7 +644,7 @@ static int luaB_dup_sprite(lua_State *L) {
 	sp = sprite_new(key, img2);
 	if (!sp)
 		goto err;
-	lua_pushstring(L, sname);
+	lua_pushstring(L, sp->name);
 	return 1;
 err:
 	gfx_free_image(img2);
@@ -679,7 +691,7 @@ static int luaB_scale_sprite(lua_State *L) {
 	sp = sprite_new(key, img2);
 	if (!sp)
 		goto err;
-	lua_pushstring(L, sname);
+	lua_pushstring(L, sp->name);
 	return 1;
 err:
 	gfx_free_image(img2);
@@ -719,7 +731,7 @@ static int luaB_rotate_sprite(lua_State *L) {
 	sp = sprite_new(key, img2);
 	if (!sp)
 		goto err;
-	lua_pushstring(L, sname);
+	lua_pushstring(L, sp->name);
 	return 1;
 err:
 	gfx_free_image(img2);
@@ -1273,7 +1285,7 @@ static void lineAA(struct lua_pixels *src, int x0, int y0, int x1, int y1,
 		if (2 * e2 >= -dx) {
 			if (x0 == x1)
 				break;
-			if (e2 + dy < ed) {
+			if (e2 + dy < ed && y0 + 1 < h) {
 				col[3] = a - a * (e2 + dy) / ed;
 				pixel(col, ptr + syp);
 			}
@@ -1286,7 +1298,7 @@ static void lineAA(struct lua_pixels *src, int x0, int y0, int x1, int y1,
 		if (2 * e2 <= dy) {
 			if (y0 == y1)
 				break;
-			if (dx - e2 < ed) {
+			if (dx - e2 < ed && x0 + sx >= 0 && x0 + sx < w) {
 				col[3] = a - a * (dx - e2) / ed;
 				pixel(col, optr + sxp);
 			}
@@ -1355,10 +1367,10 @@ static int _pixels_blend(struct lua_pixels *src, int x, int y, int w, int h,
 	if (!h)
 		h = src->h;
 
-	if (x < 0 || x + w > src->w)
+	if (x < 0 || (unsigned int)(x + w) > (unsigned int)src->w)
 		return 0;
 
-	if (y < 0 || y + h > src->h)
+	if (y < 0 || (unsigned int)(y + h) > (unsigned int)src->h)
 		return 0;
 
 	if (w <= 0 || h <= 0)
@@ -1482,9 +1494,9 @@ static void _fill(struct lua_pixels *src, int x, int y, int w, int h,
 	if (w <= 0 || h <= 0 || x >= src->w || y >= src->h)
 		return;
 
-	if (x + w > src->w)
+	if (w > src->w - x)
 		w = src->w - x;
-	if (y + h > src->h)
+	if (h > src->h - y)
 		h = src->h - y;
 
 	ptr1 = (unsigned char *)(src + 1);
@@ -1556,7 +1568,7 @@ static void triangle(struct lua_pixels *src, int x0, int y0, int x1, int y1, int
 	unsigned char *ptr;
 	w = src->w; h = src->h;
 	yd = 4 * w;
-	col[0] = r; col[1] = b; col[2] = g; col[3] = a;
+	col[0] = r; col[1] = g; col[2] = b; col[3] = a;
 
 	if (minx >= w || miny >= h)
 		return;
@@ -1612,7 +1624,8 @@ static void fill_circle(struct lua_pixels *src, int xc, int yc, int radius, int 
 	ptr += (w * yc + xc) << 2;
 
 	if (radius == 1) {
-		pixel(col, ptr);
+		if (xc >= 0 && yc >= 0 && xc < w && yc < h)
+			pixel(col, ptr);
 		return;
 	}
 	y1 = -radius; y2 = radius;
