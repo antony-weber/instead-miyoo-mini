@@ -2378,15 +2378,25 @@ static void SDL_UpdateRect(SDL_Surface * screen, Sint32 x, Sint32 y, Uint32 w, U
 
 int SDL_Flip(SDL_Surface * screen)
 {
-	SDL_Rect rect;
-	int pitch, psize;
-	unsigned char *pixels;
+	int pitch;
 	if (!screen)
 		return 0;
 	pitch = screen->pitch;
-	psize = screen->format->BytesPerPixel;
-	pixels = screen->pixels;
 	if (queue_dirty) {
+#if defined(TARGET_MIYOO)
+		/* On Miyoo Mini, MMIYOO_UpdateTexture ignores rect and treats pixels as the base pointer
+		 * of the texture buffer. Sub-rectangle pointer offsets shift the texture origin,
+		 * projecting cursor/link tiles onto the top-left corner (0, 0).
+		 * Updating the full screen texture avoids coordinate offsets and works at zero cost
+		 * since the driver only updates the internal pointer without memory copying. */
+		SDL_UpdateTexture(SDL_VideoTexture, NULL, screen->pixels, pitch);
+		gfx_render_copy(SDL_VideoTexture, NULL, 1);
+		SDL_RenderPresent(Renderer);
+#else
+		SDL_Rect rect;
+		int psize = screen->format->BytesPerPixel;
+		unsigned char *pixels = screen->pixels;
+
 		rect.x = queue_x1;
 		rect.y = queue_y1;
 		rect.w = queue_x2 - queue_x1;
@@ -2396,6 +2406,7 @@ int SDL_Flip(SDL_Surface * screen)
 		SDL_UpdateTexture(SDL_VideoTexture, &rect, pixels, pitch);
 		gfx_render_copy(SDL_VideoTexture, &rect, 1);
 		SDL_RenderPresent(Renderer);
+#endif
 	}
 	queue_x1 = queue_y1 = queue_x2 = queue_y2 = -1;
 	queue_dirty = 0;
@@ -5551,6 +5562,10 @@ void gfx_warp_cursor(int x, int y)
 		y = x;
 		x = gfx_height - tmp;
 	}
+#endif
+#if defined(TARGET_MIYOO)
+	mouse_x = x;
+	mouse_y = y;
 #endif
 	SDL_RenderGetViewport(Renderer, &rect);
 	SDL_RenderGetScale(Renderer, &sx, &sy);

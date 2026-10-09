@@ -2707,22 +2707,24 @@ void game_cursor(int on)
 		int ow = w;
 		int oh = h;
 
-		gfx_cursor(&xc, &yc);
-		xc -= game_theme.cur_x;
-		yc -= game_theme.cur_y;
+		if (on != CURSOR_DRAW) {
+			gfx_cursor(&xc, &yc);
+			xc -= game_theme.cur_x;
+			yc -= game_theme.cur_y;
+		}
 
 		w = gfx_img_w(cur);
 		h = gfx_img_h(cur);
-		if (!nocursor_sw && mouse_focus() && (game_cursor_show || menu_shown)) {
-			grab = gfx_grab_screen(xc, yc, w, h);
-			gfx_draw(cur, xc, yc);
-		} else {
-			grab = NULL;
-		}
 
-		_game_update(xc, yc, w, h);
-		if (ox != xc || oy != yc)
-			_game_update(ox, oy, ow, oh);
+		grab = gfx_grab_screen(xc, yc, w, h);
+		if (!nocursor_sw && mouse_focus() && (game_cursor_show || menu_shown))
+			gfx_draw(cur, xc, yc);
+
+		if (on != CURSOR_DRAW) {
+			_game_update(xc, yc, w, h);
+			if (ox != xc || oy != yc)
+				_game_update(ox, oy, ow, oh);
+		}
 	} while (0);
 out:
 	gfx_clip(xx, yy, ww, hh);
