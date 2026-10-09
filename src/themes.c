@@ -528,6 +528,11 @@ int theme_gfx_scale(img_t *p, float scale)
 	if (!p || !*p || v == 1.0f)
 		return 0;
 
+#if !defined(TARGET_MIYOO)
+	if (!cache_have(gfx_image_cache(), *p))
+		return 0; /* do not scale sprites! */
+#endif
+
 	pic = gfx_scale(*p, v, v, SCALABLE_THEME_SMOOTH);
 	if (!pic)
 		return -1;
@@ -776,6 +781,7 @@ int game_theme_optimize(void)
 /* todo: check errors */
 	struct game_theme *t = &game_theme;
 
+#if defined(TARGET_MIYOO)
 	if (t->bg) {
 		t->bg = gfx_display_alpha(t->bg);
 		gfx_unset_alpha(t->bg);
@@ -796,6 +802,28 @@ int game_theme_optimize(void)
 	}
 	if (t->menu_button)
 		t->menu_button = gfx_display_alpha(t->menu_button);
+#else
+	if (t->bg && cache_have(gfx_image_cache(), t->bg)) {
+		t->bg = gfx_display_alpha(t->bg);
+		gfx_unset_alpha(t->bg);
+	}
+	if (t->a_up && cache_have(gfx_image_cache(), t->a_up))
+		t->a_up = gfx_display_alpha(t->a_up);
+	if (t->a_down && cache_have(gfx_image_cache(), t->a_down))
+		t->a_down = gfx_display_alpha(t->a_down);
+	if (t->inv_a_up && cache_have(gfx_image_cache(), t->inv_a_up))
+		t->inv_a_up = gfx_display_alpha(t->inv_a_up);
+	if (t->inv_a_down && cache_have(gfx_image_cache(), t->inv_a_down))
+		t->inv_a_down = gfx_display_alpha(t->inv_a_down);
+	if (t->use && cache_have(gfx_image_cache(), t->use))
+		t->use = gfx_display_alpha(t->use);
+	if (t->cursor && cache_have(gfx_image_cache(), t->cursor)) {
+		t->cursor = gfx_display_alpha(t->cursor);
+		gfx_set_cursor(t->cursor, t->cur_x, t->cur_y);
+	}
+	if (t->menu_button && cache_have(gfx_image_cache(), t->menu_button))
+		t->menu_button = gfx_display_alpha(t->menu_button);
+#endif
 	return 0;
 }
 
@@ -977,8 +1005,10 @@ int game_theme_init(void)
 	int h  = opt_mode[1];
 
 	game_cursor_show = 1;
+#if defined(TARGET_MIYOO)
 	if (!game_theme.gfx_scalable)
 		game_theme.gfx_scalable = 1;
+#endif
 
 	if (opt_fs && opt_hires && !gfx_get_max_mode(&w, &h, MODE_ANY)) {
 #if defined(IOS) || defined(ANDROID) || defined(WINRT) || defined(_USE_SWROTATE)
@@ -1015,8 +1045,10 @@ int game_theme_init(void)
 #endif
 	}
 	game_theme_scale(w, h);
+#if defined(TARGET_MIYOO)
 	if (game_theme.w <= 0) game_theme.w = 640;
 	if (game_theme.h <= 0) game_theme.h = 480;
+#endif
 	if (gfx_set_mode(game_theme.w, game_theme.h, opt_fs)) {
 		opt_mode[0] = opt_mode[1] = -1; opt_fs = 0; /* safe options */
 		return -1;

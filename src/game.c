@@ -2707,11 +2707,9 @@ void game_cursor(int on)
 		int ow = w;
 		int oh = h;
 
-		if (on != CURSOR_DRAW) {
-			gfx_cursor(&xc, &yc);
-			xc -= game_theme.cur_x;
-			yc -= game_theme.cur_y;
-		}
+		gfx_cursor(&xc, &yc);
+		xc -= game_theme.cur_x;
+		yc -= game_theme.cur_y;
 
 		w = gfx_img_w(cur);
 		h = gfx_img_h(cur);
@@ -2722,10 +2720,9 @@ void game_cursor(int on)
 			grab = NULL;
 		}
 
-		if (on != CURSOR_DRAW) {
-			_game_update(xc, yc, w, h);
+		_game_update(xc, yc, w, h);
+		if (ox != xc || oy != yc)
 			_game_update(ox, oy, ow, oh);
-		}
 	} while (0);
 out:
 	gfx_clip(xx, yy, ww, hh);
@@ -3382,11 +3379,19 @@ static int kbd_modifiers(struct inp_event *ev)
 	if (ev->type != KEY_DOWN && ev->type != KEY_UP)
 		return 0;
 #if defined(TARGET_MIYOO)
-	/* On Miyoo Mini, Left Alt is mapped to button B */
+	/* On Miyoo Mini:
+	 * Left Ctrl = B, Right Ctrl = Select, Left Shift = X.
+	 * They are used as standalone game buttons, so do not capture them as modifiers.
+	 */
 	if (!is_key(ev, "right alt")) {
+		alt_pressed = (ev->type == KEY_DOWN);
+		return 1;
+	} else if (!is_key(ev, "right shift")) {
+		shift_pressed = (ev->type == KEY_DOWN);
+		return 1;
+	}
 #else
 	if (!is_key(ev, "left alt") || !is_key(ev, "right alt")) {
-#endif
 		alt_pressed = (ev->type == KEY_DOWN);
 		return 1;
 	} else if (!is_key(ev, "left shift") || !is_key(ev, "right shift")) {
@@ -3396,17 +3401,27 @@ static int kbd_modifiers(struct inp_event *ev)
 		control_pressed = (ev->type == KEY_DOWN);
 		return 1;
 	}
+#endif
 	return 0;
 }
 
 static int is_key_back(struct inp_event *ev)
 {
+#if defined(TARGET_MIYOO)
+	/* On Miyoo Mini:
+	 * Menu button (Escape) exits with save.
+	 * X (Left Shift) and R2 (Backspace) perform in-game cancel / deselect.
+	 */
+	if (!is_key(ev, "left shift") || !is_key(ev, "backspace"))
+		return 0;
+#else
 	if (!is_key(ev, "escape")
 #ifdef ANDROID
 	    || ev->code == 118
 #endif
 	    )
 		return 0;
+#endif
 	return -1;
 }
 
@@ -3415,13 +3430,31 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 	if (ev->type != KEY_DOWN)
 		return 0;
 
+#if defined(TARGET_MIYOO)
+	/* On Miyoo Mini, central Menu button sends Escape:
+	 * Exit the game cleanly with autosave.
+	 */
+	if (!is_key(ev, "escape")) {
+		if (curgame_dir && opt_autosave)
+			game_save(0);
+		game_running = 0;
+		return -1;
+	}
+#endif
+
 	if (!is_key_back(ev)) {
 		if (use_xref)
 			disable_use();
 		else
 			menu_toggle(-1);
-	} else if (!is_key(ev, "f1")) {
+	} else if (!is_key(ev, "f1")
+#if defined(TARGET_MIYOO)
+		   || !is_key(ev, "right ctrl") /* Select button opens menu */
+#endif
+		   ) {
 		if (!menu_shown)
+			menu_toggle(-1);
+		else
 			menu_toggle(-1);
 	} else if (!is_key(ev, "f2") && curgame_dir) {
 		game_menu(menu_save);
@@ -3481,6 +3514,7 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 	} else if (DIRECT_MODE && !menu_shown) {
 		; /* nothing todo */
 #if defined(TARGET_MIYOO)
+	/* A (space) and Start (return/enter) confirm action / click */
 	} else if (!alt_pressed && (!is_key(ev, "return") || !is_key(ev, "enter") ||
 				    !is_key(ev, "space"))) {
 #else
@@ -3499,7 +3533,8 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 			return -1;
 		}
 #if defined(TARGET_MIYOO)
-	} else if (!is_key(ev, "tab") || !is_key(ev, "left alt")) {
+	/* B (left ctrl) and L2 (tab) switch frame (scene <-> inventory) / back in menu */
+	} else if (!is_key(ev, "tab") || !is_key(ev, "left ctrl")) {
 		if (menu_shown && curgame_dir) {
 			menu_toggle(-1);
 		} else {
@@ -3559,9 +3594,10 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 	} else if (!is_key(ev, "right") || !is_key(ev, "[6]")) {
 		select_ref(0, 0);
 #if defined(TARGET_MIYOO)
-	} else if ((!is_key(ev, "backspace") || !is_key(ev, "e")) && !menu_shown) {
+	/* L1 (e) and R1 (t) scroll text page up / page down */
+	} else if (!is_key(ev, "e") && !menu_shown) {
 		scroll_pup(el_scene);
-	} else if ((!is_key(ev, "t")) && !menu_shown) {
+	} else if (!is_key(ev, "t") && !menu_shown) {
 		scroll_pdown(el_scene);
 #else
 	} else if (!is_key(ev, "backspace") && !menu_shown) {

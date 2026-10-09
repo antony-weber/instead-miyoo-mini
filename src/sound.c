@@ -33,11 +33,19 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
+#if defined(TARGET_MIYOO)
 int audio_rate = 44100;
+#else
+int audio_rate = 22050;
+#endif
 
 Uint16 audio_format = MIX_DEFAULT_FORMAT;
 int audio_channels = 2;
+#if defined(TARGET_MIYOO)
 int audio_buffers = 2048;
+#else
+int audio_buffers = 8192;
+#endif
 
 static mus_t mus;
 static char *next_mus = NULL;
@@ -112,13 +120,21 @@ static int _snd_open(int hz)
 		hz = audio_rate;
 	else
 		audio_rate = hz;
+#if defined(TARGET_MIYOO)
 	chunk = (chunksize_sw>0)?chunksize_sw:256;
 	audio_buffers = (audio_rate / 11025) * chunk;
 	if (audio_buffers <= 0 || audio_buffers > 1024)
 		audio_buffers = 1024;
+#else
+	chunk = (chunksize_sw>0)?chunksize_sw:DEFAULT_CHUNKSIZE;
+	audio_buffers = (audio_rate / 11025) * chunk;
+	if (audio_buffers <= 0) /* wrong parameter? */
+		audio_buffers = DEFAULT_CHUNKSIZE;
+#endif
 #ifdef __EMSCRIPTEN__
 	if (Mix_OpenAudioDevice(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 4096, NULL, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE)) {
 #else
+#if defined(TARGET_MIYOO)
 	if (Mix_OpenAudio(hz, audio_format, audio_channels, audio_buffers) &&
 	    Mix_OpenAudio(hz, audio_format, audio_channels, 2048) &&
 	    Mix_OpenAudio(hz, audio_format, audio_channels, 512) &&
@@ -127,6 +143,12 @@ static int _snd_open(int hz)
 		sound_on = 0;
 		return -1;
 	}
+#else
+	if (Mix_OpenAudio(hz, audio_format, audio_channels, audio_buffers)) {
+		fprintf(stderr, "Unable to open audio!\n");
+		return -1;
+	}
+#endif
 #endif
 	sound_on = 1;
 	Mix_ChannelFinished(game_channel_finished);

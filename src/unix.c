@@ -249,6 +249,7 @@ char *appdir(void)
 #endif
 	if (appdata_sw)
 		strcpy(dir, appdata_sw);
+#if defined(TARGET_MIYOO)
 	if (dir[0]) {
 		mkdir(dir, 0755);
 		return dir;
@@ -262,6 +263,15 @@ char *appdir(void)
 	strcpy(dir, "/tmp/instead");
 	mkdir(dir, 0755);
 	return dir;
+#else
+	if (dir[0] && !access(dir, W_OK))
+		return dir;
+	pw = getpwuid(getuid());
+	if (!pw) 
+		return NULL;
+	snprintf(dir, sizeof(dir) - 1 , "%s/.instead", pw->pw_dir);
+	return dir;
+#endif
 }
 
 char *game_local_games_path(int cr)

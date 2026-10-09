@@ -18,12 +18,12 @@ Controls have been adapted for convenient one- or two-handed handheld play witho
 | Miyoo Button | In-Game Action |
 |---|---|
 | **D-Pad** | Navigate between links / menu items / inventory items |
-| **A** | **Action / Confirm** (select link, inspect, use item, proceed) |
-| **B** | **Switch Focus** between scene text and inventory (Back / Close menu) |
-| **L1** | Scroll text page up (Page Up) |
-| **R1** | Scroll text page down (Page Down) |
-| **Start** | Pause Menu / Main Menu (save, load, settings) |
-| **Select** | Cancel action / Close menu |
+| **A / Start** | **Confirm / Action** (select link, inspect, use item, proceed) |
+| **B / L2** | **Switch Focus** between scene text and inventory (Back / Close menu) |
+| **Select** | **Main Menu / Pause** (save, load, settings) |
+| **X / R2** | **Cancel action** / Deselect item / Close dialog |
+| **L1 / R1** | Scroll text page up / down (Page Up / Page Down) |
+| **Menu (Center)** | **Save & Exit** (clean exit with autosave) |
 
 ### 📦 Installation
 
@@ -92,12 +92,12 @@ The resulting binary `src/sdl-instead` will be optimized specifically for Miyoo 
 | Кнопка Miyoo | Действие в игре |
 |---|---|
 | **D-Pad (Крестовина)** | Перемещение между ссылками / пунктами меню / предметами |
-| **A** | **Выбор / Подтверждение действия** (переход по ссылке, осмотр, взять предмет) |
-| **B** | **Переключение фокуса** между текстом сцены и инвентарём (в меню — возврат назад) |
-| **L1** | Прокрутка текста на страницу вверх (Page Up) |
-| **R1** | Прокрутка текста на страницу вниз (Page Down) |
-| **Start** | Меню паузы / Главное меню (сохранение, загрузка, настройки) |
-| **Select** | Отмена действия / Закрыть меню |
+| **A / Start** | **Подтверждение / Действие** (переход по ссылке, осмотр, применить предмет) |
+| **B / L2** | **Переключение фокуса** между текстом сцены и инвентарём (в меню — возврат назад) |
+| **Select** | **Главное меню / Пауза** (сохранение, загрузка, настройки) |
+| **X / R2** | **Отмена действия** / Снять выбор предмета / Закрыть диалог |
+| **L1 / R1** | Прокрутка текста на страницу вверх / вниз (Page Up / Page Down) |
+| **Menu (Центральная)** | **Выход с сохранением** (быстрое автосохранение и чистый выход) |
 
 ### 📦 Установка
 
