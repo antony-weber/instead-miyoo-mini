@@ -2248,7 +2248,9 @@ done:
 	SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_NONE);
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 	SDL_RenderClear(Renderer);
+#if !defined(TARGET_MIYOO)
 	SDL_RenderPresent(Renderer);
+#endif
 	SDL_FillRect(SDL_VideoSurface, NULL, SDL_MapRGB(SDL_VideoSurface->format, 0, 0, 0));
 	return 0;
 }

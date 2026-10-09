@@ -1064,7 +1064,9 @@ int game_theme_init(void)
 		game_theme.bgcol, game_theme.brdcol);
 	game_clear_all();
 	gfx_flip();
+#if !defined(TARGET_MIYOO)
 	gfx_commit();
+#endif
 	return 0;
 }
 
