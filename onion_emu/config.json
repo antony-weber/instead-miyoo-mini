@@ -5,6 +5,7 @@
   "launch": "launch.sh",
   "rompath": "../../Roms/INSTEAD",
   "imgpath": "../../Roms/INSTEAD/Imgs",
+  "gamelist": "../../Roms/INSTEAD/miyoogamelist.xml",
   "useswap": 0,
   "shortname": 0,
   "hidebios": 1,
