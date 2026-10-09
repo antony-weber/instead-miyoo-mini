@@ -64,6 +64,14 @@ char *game_tmp_path(void)
 {
 	static time_t t = 0;
 	static char tmp[PATH_MAX]="/tmp/instead-games";
+#if defined(TARGET_MIYOO)
+	char *app = appdir();
+	if (app) {
+		snprintf(tmp, sizeof(tmp), "%s/tmp", app);
+		mkdir(tmp, 0755);
+		return tmp;
+	}
+#endif
 	if (!t) {
 		t = time(NULL);
 		sprintf(tmp, "/tmp/instead-games-%lu", (unsigned long)t);
