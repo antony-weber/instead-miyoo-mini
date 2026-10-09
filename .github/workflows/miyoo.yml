@@ -87,6 +87,7 @@ jobs:
         with:
           files: INSTEAD-Miyoo.zip
           name: INSTEAD ${{ github.ref_name }}
+          generate_release_notes: true
           body: |
             ### INSTEAD for Miyoo Mini / Miyoo Mini Plus (Onion OS)
             
@@ -98,5 +99,6 @@ jobs:
             - Download games from [instead-games.ru](https://instead-games.ru/) and extract to `App/INSTEAD/games/<game_folder>/`.
             - Скачивайте квесты с [instead-games.ru](https://instead-games.ru/) и распаковывайте в `App/INSTEAD/games/<папка_игры>/`.
           draft: false
-          prerelease: false
-          make_latest: true
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          make_latest: ${{ !contains(github.ref_name, '-rc') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-alpha') }}
+
