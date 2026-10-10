@@ -5746,34 +5746,20 @@ int save_gameswitcher_screenshot(void)
 	if (screenshot_taken)
 		return 0;
 
-	if (!Renderer)
-		return -1;
-
-	const int width = 640;
-	const int height = 480;
-
-	SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_ARGB8888);
-	if (!surface) {
-		fprintf(stderr, "[GameSwitcher] Failed to allocate surface: %s\n", SDL_GetError());
+	SDL_Surface *src = Surf(screen);
+	if (!src) {
+		fprintf(stderr, "[GameSwitcher] screen surface is NULL\n");
 		return -1;
 	}
 
-	if (SDL_RenderReadPixels(Renderer, NULL, SDL_PIXELFORMAT_ARGB8888, surface->pixels, surface->pitch) != 0) {
-		fprintf(stderr, "[GameSwitcher] SDL_RenderReadPixels failed: %s\n", SDL_GetError());
-		SDL_FreeSurface(surface);
-		return -1;
-	}
-
-	int ret = IMG_SavePNG(surface, "/tmp/screenshot.png");
-	SDL_FreeSurface(surface);
-
+	int ret = IMG_SavePNG(src, "/tmp/screenshot.png");
 	if (ret != 0) {
 		fprintf(stderr, "[GameSwitcher] IMG_SavePNG failed: %s\n", IMG_GetError());
 		return -1;
 	}
 
 	screenshot_taken = 1;
-	fprintf(stderr, "[GameSwitcher] Successfully saved /tmp/screenshot.png (640x480)\n");
+	fprintf(stderr, "[GameSwitcher] Successfully saved /tmp/screenshot.png (%dx%d)\n", src->w, src->h);
 	return 0;
 }
 #endif

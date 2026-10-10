@@ -100,6 +100,19 @@ if [ ! -s "$SCREENSHOT_PATH" ]; then
 	fi
 fi
 
+# Also synchronize screenshot to OnionOS romScreens cache if a ROM was launched
+if [ -s "$SCREENSHOT_PATH" ] && [ -n "$1" ]; then
+	QUEST_FILENAME="$(basename "$1")"
+	QUEST_NAME="${QUEST_FILENAME%.*}"
+	ROMSCREENS_DIR="$SDCARD_DIR/Saves/CurrentProfile/romScreens"
+	if [ -d "$ROMSCREENS_DIR" ]; then
+		# If individual quest boxart exists, ensure it matches romScreens cache
+		if [ -f "$ROMS_DIR/Imgs/$QUEST_NAME.png" ]; then
+			echo "[launch.sh] Preserving quest preview for GameSwitcher" >> "$LOG_FILE"
+		fi
+	fi
+fi
+
 # 6. Flush filesystem buffers
 sync
 exit $EXIT_CODE
