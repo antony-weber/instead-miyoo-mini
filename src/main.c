@@ -856,6 +856,9 @@ int instead_main(int argc, char *argv[])
 #ifdef __EMSCRIPTEN__
 	return 0;
 #endif
+#if defined(TARGET_MIYOO)
+	save_gameswitcher_screenshot();
+#endif
 	cfg_save();
 	game_done(0);
 	snd_done();

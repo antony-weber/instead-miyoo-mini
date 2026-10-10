@@ -100,17 +100,36 @@ if [ ! -s "$SCREENSHOT_PATH" ]; then
 	fi
 fi
 
-# Also synchronize screenshot to OnionOS romScreens cache if a ROM was launched
+# Also synchronize screenshot to OnionOS romScreens cache and states for GameSwitcher
 if [ -s "$SCREENSHOT_PATH" ] && [ -n "$1" ]; then
-	QUEST_FILENAME="$(basename "$1")"
-	QUEST_NAME="${QUEST_FILENAME%.*}"
 	ROMSCREENS_DIR="$SDCARD_DIR/Saves/CurrentProfile/romScreens"
-	if [ -d "$ROMSCREENS_DIR" ]; then
-		# If individual quest boxart exists, ensure it matches romScreens cache
-		if [ -f "$ROMS_DIR/Imgs/$QUEST_NAME.png" ]; then
-			echo "[launch.sh] Preserving quest preview for GameSwitcher" >> "$LOG_FILE"
+	mkdir -p "$ROMSCREENS_DIR"
+
+	# Calculate 32-bit hash used by OnionOS GameSwitcher
+	if [ -x "$EMU_DIR/bin/onion_hash" ]; then
+		HASH_FULL="$("$EMU_DIR/bin/onion_hash" "$1")"
+		if [ -n "$HASH_FULL" ]; then
+			cp "$SCREENSHOT_PATH" "$ROMSCREENS_DIR/${HASH_FULL}.png"
+			echo "[launch.sh] Cached screenshot to $ROMSCREENS_DIR/${HASH_FULL}.png" >> "$LOG_FILE"
+		fi
+
+		# Also check relative rompath from recentlist (e.g. /mnt/SDCARD/Emu/INSTEAD/../../Roms/INSTEAD/./<name>.zip)
+		ROM_BN="$(basename "$1")"
+		REL_PATH="/mnt/SDCARD/Emu/INSTEAD/../../Roms/INSTEAD/./$ROM_BN"
+		HASH_REL="$("$EMU_DIR/bin/onion_hash" "$REL_PATH")"
+		if [ -n "$HASH_REL" ] && [ "$HASH_REL" != "$HASH_FULL" ]; then
+			cp "$SCREENSHOT_PATH" "$ROMSCREENS_DIR/${HASH_REL}.png"
+			echo "[launch.sh] Cached screenshot to $ROMSCREENS_DIR/${HASH_REL}.png" >> "$LOG_FILE"
 		fi
 	fi
+
+	# Also store in states/INSTEAD for state-based switcher previews
+	STATES_DIR="$SDCARD_DIR/Saves/CurrentProfile/states/INSTEAD"
+	mkdir -p "$STATES_DIR"
+	QUEST_FILENAME="$(basename "$1")"
+	QUEST_NAME="${QUEST_FILENAME%.*}"
+	cp "$SCREENSHOT_PATH" "$STATES_DIR/${QUEST_NAME}.state.auto.png" 2>/dev/null
+	echo "[launch.sh] Saved state preview to $STATES_DIR/${QUEST_NAME}.state.auto.png" >> "$LOG_FILE"
 fi
 
 # 6. Flush filesystem buffers
