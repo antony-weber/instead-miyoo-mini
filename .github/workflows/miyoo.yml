@@ -61,47 +61,34 @@ jobs:
           make -j$(nproc)
           make install
 
-      - name: Assemble Packages
+      - name: Assemble OnionOS Package
         run: |
-          # 1. Assemble Legacy App Package
-          mkdir -p package/App/INSTEAD
-          cp -r build_miyoo/standalone/* package/App/INSTEAD/
-          cp -r miyoo_pkg/* package/App/INSTEAD/
-          chmod +x package/App/INSTEAD/launch.sh package/App/INSTEAD/sdl-instead
-          cd package && zip -r ../INSTEAD-Miyoo.zip App/ && cd ..
-          rm -rf package
-
-          # 2. Assemble Native OnionOS Emulator Package
           chmod +x package_onion.sh
           ./package_onion.sh
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: INSTEAD-Packages
-          path: |
-            INSTEAD-OnionOS.zip
-            INSTEAD-Miyoo.zip
+          name: INSTEAD-OnionOS
+          path: INSTEAD-OnionOS.zip
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            INSTEAD-OnionOS.zip
-            INSTEAD-Miyoo.zip
+          files: INSTEAD-OnionOS.zip
           name: INSTEAD ${{ github.ref_name }}
           generate_release_notes: true
           body: |
             ### INSTEAD for Miyoo Mini / Miyoo Mini Plus (Onion OS)
             
             **Installation / Установка:**
-            - **OnionOS Emulator (Recommended / Рекомендуется):**
-              Download `INSTEAD-OnionOS.zip`, extract into the root of your SD card. Put quests (`.zip` / `.idf` / folders) into `Roms/INSTEAD/`. Launch directly from the **Games / Consoles** carousel!
-              Скачайте `INSTEAD-OnionOS.zip`, распакуйте в корень SD-карты. Поместите квесты (`.zip` / `.idf` / папки) в `Roms/INSTEAD/`. Запускайте прямо из меню выбора платформ!
-            - **Standalone App:**
-              Download `INSTEAD-Miyoo.zip`, extract into `App/INSTEAD/`. Launch from **Apps**.
-              Скачайте `INSTEAD-Miyoo.zip`, распакуйте в `App/INSTEAD/`. Запустите из меню **Apps**.
+            - **EN:** Download `INSTEAD-OnionOS.zip`, extract into the root of your SD card. Put quests (`.zip`, `.idf`, or folders) into `Roms/INSTEAD/`. Launch directly from the **Games / Consoles** carousel!
+            - **RU:** Скачайте `INSTEAD-OnionOS.zip`, распакуйте в корень SD-карты. Поместите квесты (`.zip`, `.idf` или папки) в `Roms/INSTEAD/`. Запускайте прямо из меню выбора платформ!
+            
+            **Games / Игры:**
+            - Download games from [instead-games.ru](https://instead-games.ru/) and put into `Roms/INSTEAD/`.
+            - Скачивайте квесты с [instead-games.ru](https://instead-games.ru/) и копируйте в `Roms/INSTEAD/`.
           draft: false
           prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
           make_latest: ${{ !contains(github.ref_name, '-rc') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-alpha') }}

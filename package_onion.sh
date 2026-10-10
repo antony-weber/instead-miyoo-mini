@@ -30,8 +30,8 @@ fi
 chmod +x "${PKG_DIR}/Emu/INSTEAD/bin/instead"
 
 # 3. Copy runtime shared libraries
-if [ -d "${SCRIPT_DIR}/miyoo_pkg/libs" ]; then
-    cp -P "${SCRIPT_DIR}/miyoo_pkg/libs"/*.so* "${PKG_DIR}/Emu/INSTEAD/lib/"
+if [ -d "${SCRIPT_DIR}/runtime_libs" ]; then
+    cp -P "${SCRIPT_DIR}/runtime_libs"/*.so* "${PKG_DIR}/Emu/INSTEAD/lib/"
 fi
 
 # 4. Copy fresh stead, themes, and lang directly from repository root
