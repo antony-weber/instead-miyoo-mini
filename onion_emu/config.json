@@ -1,7 +1,7 @@
 {
   "label": "INSTEAD",
   "icon": "icon.png",
-  "iconsel": "icon.png",
+  "iconsel": "icon-f.png",
   "launch": "launch.sh",
   "rompath": "../../Roms/INSTEAD",
   "imgpath": "../../Roms/INSTEAD/Imgs",
