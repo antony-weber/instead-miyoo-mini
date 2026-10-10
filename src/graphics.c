@@ -34,6 +34,10 @@
 #include <glib.h>
 #endif
 
+#if defined(TARGET_MIYOO)
+#include "platform/miyoo.h"
+#endif
+
 #include <SDL_mutex.h>
 #include "SDL_rotozoom.h"
 #include "SDL_gfxBlitFunc.h"
@@ -5739,35 +5743,17 @@ int gfx_init(void)
 	return 0;
 }
 
-#if defined(TARGET_MIYOO)
-int save_gameswitcher_screenshot(void)
+int gfx_save_screen_png(const char *path)
 {
-	static int screenshot_taken = 0;
-	if (screenshot_taken)
-		return 0;
-
-	SDL_Surface *src = Surf(screen);
-	if (!src) {
-		fprintf(stderr, "[GameSwitcher] screen surface is NULL\n");
+	if (!screen || !Surf(screen))
 		return -1;
-	}
-
-	int ret = IMG_SavePNG(src, "/tmp/screenshot.png");
-	if (ret != 0) {
-		fprintf(stderr, "[GameSwitcher] IMG_SavePNG failed: %s\n", IMG_GetError());
-		return -1;
-	}
-
-	screenshot_taken = 1;
-	fprintf(stderr, "[GameSwitcher] Successfully saved /tmp/screenshot.png (%dx%d)\n", src->w, src->h);
-	return 0;
+	return IMG_SavePNG(Surf(screen), path);
 }
-#endif
 
 void gfx_done(void)
 {
 #if defined(TARGET_MIYOO)
-	save_gameswitcher_screenshot();
+	miyoo_save_screenshot();
 #endif
 	if (screen)
 		gfx_free_image(screen);

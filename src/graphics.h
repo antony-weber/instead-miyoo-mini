@@ -67,9 +67,7 @@ extern color_t gfx_col(int r, int g, int b);
 
 extern int 	gfx_init(void);
 extern void 	gfx_done(void);
-#if defined(TARGET_MIYOO)
-extern int 	save_gameswitcher_screenshot(void);
-#endif
+extern int 	gfx_save_screen_png(const char *path);
 
 extern int	gfx_parse_color (const char *spec, color_t *def);
 extern void	gfx_flip(void);

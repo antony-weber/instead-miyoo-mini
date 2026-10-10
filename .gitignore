@@ -1,1 +1,10 @@
 build_miyoo/
+build_test/
+onion_emu/bin/
+onion_emu/lib/
+onion_emu/stead/
+onion_emu/themes/
+onion_emu/share/
+onion_emu/lang/
+package/
+*.zip

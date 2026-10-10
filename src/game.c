@@ -24,6 +24,9 @@
 
 #include "externals.h"
 #include "internals.h"
+#if defined(TARGET_MIYOO)
+#include "platform/miyoo.h"
+#endif
 
 #define MOTION_TIME (timer_counter - click_time >= 200 / HZ)
 int game_running = 1;
@@ -3419,11 +3422,7 @@ static int kbd_modifiers(struct inp_event *ev)
 static int is_key_back(struct inp_event *ev)
 {
 #if defined(TARGET_MIYOO)
-	/* On Miyoo Mini:
-	 * Menu button (Escape) exits with save.
-	 * X (Left Shift), Y (Left Alt) perform in-game cancel / deselect.
-	 */
-	if (!is_key(ev, "left shift") || !is_key(ev, "left alt"))
+	if (miyoo_is_key_back(ev))
 		return 0;
 #else
 	if (!is_key(ev, "escape")
@@ -3487,7 +3486,7 @@ static int kbd_instead(struct inp_event *ev, int *x, int *y)
 #endif
 	} else if ((!is_key(ev, "f5")
 #if defined(TARGET_MIYOO)
-		   || !is_key(ev, "backspace") /* R2 button triggers Look / context inspect */
+		   || miyoo_is_key_look(ev)
 #endif
 		   ) && curgame_dir && !menu_shown) {
 		mouse_reset(1);

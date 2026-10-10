@@ -23,6 +23,9 @@
  */
 
 #include <limits.h>
+#if defined(TARGET_MIYOO)
+#include "platform/miyoo.h"
+#endif
 #include <pwd.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -65,12 +68,9 @@ char *game_tmp_path(void)
 	static time_t t = 0;
 	static char tmp[PATH_MAX]="/tmp/instead-games";
 #if defined(TARGET_MIYOO)
-	char *app = appdir();
-	if (app) {
-		snprintf(tmp, sizeof(tmp), "%s/tmp", app);
-		mkdir(tmp, 0755);
-		return tmp;
-	}
+	char *mtmp = miyoo_game_tmp_path(appdir());
+	if (mtmp)
+		return mtmp;
 #endif
 	if (!t) {
 		t = time(NULL);
