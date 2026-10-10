@@ -14,8 +14,12 @@ mkdir -p "$SAVES_DIR"
 mkdir -p "$ROMS_DIR"
 
 # Copy default config if not initialized
-if [ ! -f "$SAVES_DIR/insteadrc" ] && [ -f "$EMU_DIR/share/appdata/insteadrc" ]; then
-	cp "$EMU_DIR/share/appdata/insteadrc" "$SAVES_DIR/insteadrc"
+if [ ! -f "$SAVES_DIR/insteadrc" ]; then
+	if [ -f "$EMU_DIR/appdata/insteadrc" ]; then
+		cp "$EMU_DIR/appdata/insteadrc" "$SAVES_DIR/insteadrc"
+	elif [ -f "$EMU_DIR/share/appdata/insteadrc" ]; then
+		cp "$EMU_DIR/share/appdata/insteadrc" "$SAVES_DIR/insteadrc"
+	fi
 fi
 
 # 3. Environment & Drivers for Miyoo Mini hardware
@@ -33,6 +37,9 @@ fi
 
 cd "$EMU_DIR"
 
+THEMES_DIR="$EMU_DIR/themes"
+[ -d "$THEMES_DIR" ] || THEMES_DIR="$EMU_DIR/share/themes"
+
 LOG_FILE="$SAVES_DIR/instead.log"
 echo "=== INSTEAD LAUNCH ===" >> "$LOG_FILE"
 date >> "$LOG_FILE"
@@ -45,7 +52,7 @@ if [ -n "$1" ] && [ -f "$1" ]; then
 		-standalone \
 		-nohires \
 		-appdata "$SAVES_DIR" \
-		-themespath "$EMU_DIR/share/themes" \
+		-themespath "$THEMES_DIR" \
 		"$1" >> "$LOG_FILE" 2>&1
 else
 	echo "Launching default/fallback mode" >> "$LOG_FILE"
@@ -54,7 +61,7 @@ else
 		-nohires \
 		-appdata "$SAVES_DIR" \
 		-gamespath "$ROMS_DIR" \
-		-themespath "$EMU_DIR/share/themes" >> "$LOG_FILE" 2>&1
+		-themespath "$THEMES_DIR" >> "$LOG_FILE" 2>&1
 fi
 
 EXIT_CODE=$?

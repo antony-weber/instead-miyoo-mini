@@ -28,6 +28,14 @@ else
     strip "$BINARY" -o "${PKG_DIR}/Emu/INSTEAD/bin/instead" 2>/dev/null || cp "$BINARY" "${PKG_DIR}/Emu/INSTEAD/bin/instead"
 fi
 chmod +x "${PKG_DIR}/Emu/INSTEAD/bin/instead"
+if [ -f "${BUILD_DIR}/src/onion_hash" ]; then
+    if command -v arm-linux-gnueabihf-strip >/dev/null 2>&1; then
+        arm-linux-gnueabihf-strip "${BUILD_DIR}/src/onion_hash" -o "${PKG_DIR}/Emu/INSTEAD/bin/onion_hash"
+    else
+        strip "${BUILD_DIR}/src/onion_hash" -o "${PKG_DIR}/Emu/INSTEAD/bin/onion_hash" 2>/dev/null || cp "${BUILD_DIR}/src/onion_hash" "${PKG_DIR}/Emu/INSTEAD/bin/onion_hash"
+    fi
+    chmod +x "${PKG_DIR}/Emu/INSTEAD/bin/onion_hash"
+fi
 
 # 3. Copy runtime shared libraries
 if [ -d "${SCRIPT_DIR}/runtime_libs" ]; then
