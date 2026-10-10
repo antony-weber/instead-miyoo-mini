@@ -82,6 +82,14 @@ static void crash_handler(int sig, siginfo_t *info, void *ucontext)
 	fflush(stderr);
 	_exit(128 + sig);
 }
+
+static void term_handler(int sig)
+{
+	fprintf(stderr, "\n[GameSwitcher] Caught signal %d (%s), saving snapshot...\n",
+		sig, (sig == SIGTERM) ? "SIGTERM" : ((sig == SIGINT) ? "SIGINT" : "UNKNOWN"));
+	save_gameswitcher_screenshot();
+	_exit(128 + sig);
+}
 #endif
 
 extern int debug_init(void);
@@ -385,6 +393,12 @@ int instead_main(int argc, char *argv[])
 		sigaction(SIGBUS, &sa, NULL);
 		sigaction(SIGILL, &sa, NULL);
 		sigaction(SIGFPE, &sa, NULL);
+
+		struct sigaction st;
+		memset(&st, 0, sizeof(st));
+		st.sa_handler = term_handler;
+		sigaction(SIGTERM, &st, NULL);
+		sigaction(SIGINT, &st, NULL);
 	}
 #endif
 

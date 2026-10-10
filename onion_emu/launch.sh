@@ -60,6 +60,46 @@ fi
 EXIT_CODE=$?
 echo "EXIT CODE: $EXIT_CODE" >> "$LOG_FILE"
 
-# 5. Flush filesystem buffers
+# 5. GameSwitcher Screenshot Fallback Hook
+SCREENSHOT_PATH="/tmp/screenshot.png"
+if [ ! -s "$SCREENSHOT_PATH" ]; then
+	echo "[launch.sh] /tmp/screenshot.png missing or empty, applying fallback..." >> "$LOG_FILE"
+	FALLBACK_FOUND=0
+
+	# 1. Попытка взять индивидуальный боксарт квеста
+	if [ -n "$1" ]; then
+		QUEST_FILENAME="$(basename "$1")"
+		QUEST_NAME="${QUEST_FILENAME%.*}"
+		QUEST_IMG="$ROMS_DIR/Imgs/$QUEST_NAME.png"
+
+		if [ -f "$QUEST_IMG" ]; then
+			cp "$QUEST_IMG" "$SCREENSHOT_PATH"
+			FALLBACK_FOUND=1
+			echo "[launch.sh] Fallback to quest boxart: $QUEST_IMG" >> "$LOG_FILE"
+		fi
+	fi
+
+	# 2. Если обложки квеста нет — системный полноэкранный арт эмулятора (640x480)
+	if [ $FALLBACK_FOUND -eq 0 ] && [ -f "$EMU_DIR/bg.png" ]; then
+		cp "$EMU_DIR/bg.png" "$SCREENSHOT_PATH"
+		FALLBACK_FOUND=1
+		echo "[launch.sh] Fallback to emulator background: $EMU_DIR/bg.png" >> "$LOG_FILE"
+	fi
+
+	# 3. Дефолтная заглушка обложки
+	if [ $FALLBACK_FOUND -eq 0 ] && [ -f "$EMU_DIR/default_cover.png" ]; then
+		cp "$EMU_DIR/default_cover.png" "$SCREENSHOT_PATH"
+		FALLBACK_FOUND=1
+		echo "[launch.sh] Fallback to default cover: $EMU_DIR/default_cover.png" >> "$LOG_FILE"
+	fi
+
+	# 4. Финальный аварийный фоллбэк на иконку
+	if [ $FALLBACK_FOUND -eq 0 ] && [ -f "$EMU_DIR/icon.png" ]; then
+		cp "$EMU_DIR/icon.png" "$SCREENSHOT_PATH"
+		echo "[launch.sh] Fallback to icon: $EMU_DIR/icon.png" >> "$LOG_FILE"
+	fi
+fi
+
+# 6. Flush filesystem buffers
 sync
 exit $EXIT_CODE
