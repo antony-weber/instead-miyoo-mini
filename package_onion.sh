@@ -47,6 +47,28 @@ cp -r "${SCRIPT_DIR}/stead" "${PKG_DIR}/Emu/INSTEAD/"
 cp -r "${SCRIPT_DIR}/themes" "${PKG_DIR}/Emu/INSTEAD/"
 cp -r "${SCRIPT_DIR}/lang" "${PKG_DIR}/Emu/INSTEAD/"
 
+# 4b. Include tutorial game directly into the engine build
+mkdir -p "${PKG_DIR}/Emu/INSTEAD/games"
+cp -r "${SCRIPT_DIR}/games/tutorial" "${PKG_DIR}/Emu/INSTEAD/games/"
+mkdir -p "${PKG_DIR}/Emu/INSTEAD/share/games"
+cp -r "${SCRIPT_DIR}/games/tutorial" "${PKG_DIR}/Emu/INSTEAD/share/games/"
+
+# 4c. Include tutorial into ROMs and miyoogamelist
+(cd "${SCRIPT_DIR}/games" && zip -r "${PKG_DIR}/Roms/INSTEAD/tutorial.zip" tutorial)
+cp "${SCRIPT_DIR}/games/tutorial/instead.png" "${PKG_DIR}/Roms/INSTEAD/Imgs/tutorial.png"
+cat << 'EOF' > "${PKG_DIR}/Roms/INSTEAD/miyoogamelist.xml"
+<?xml version="1.0" encoding="utf-8"?>
+<gameList>
+  <game>
+    <path>./tutorial.zip</path>
+    <name>Обучение</name>
+    <desc>Обучающая игра для знакомства с интерфейсом и возможностями текстографических квестов INSTEAD.</desc>
+    <image>./Imgs/tutorial.png</image>
+    <developer>Петр Косых</developer>
+  </game>
+</gameList>
+EOF
+
 # 5. Copy launcher scripts, metadata and assets
 cp "${SCRIPT_DIR}/onion_emu/config.json" "${PKG_DIR}/Emu/INSTEAD/"
 cp "${SCRIPT_DIR}/onion_emu/launch.sh" "${PKG_DIR}/Emu/INSTEAD/"
