@@ -537,6 +537,27 @@ int idf_only(idf_t idf, int fl)
 	return i;
 }
 
+static char *idf_clean_path(idf_t idf, const char *fname)
+{
+	char *p;
+	if (!fname)
+		return NULL;
+	p = strdup(fname);
+	if (!p)
+		return NULL;
+	tolow(p);
+	unix_path(p);
+	if (idf && idf->path && !strncmp(p, idf->path, strlen(idf->path))) {
+		char *np = p + strlen(idf->path);
+		while (*np == '/') np++;
+		memmove(p, np, strlen(np) + 1);
+	}
+	while (p[0] == '.' && p[1] == '/') {
+		memmove(p, p + 2, strlen(p + 2) + 1);
+	}
+	return p;
+}
+
 idff_t idf_open(idf_t idf, const char *fname)
 {
 	char *rp;
@@ -545,13 +566,14 @@ idff_t idf_open(idf_t idf, const char *fname)
 	char *p;
 	if (!idf || !fname)
 		return NULL;
-	p = strdup(fname);
+	p = idf_clean_path(idf, fname);
 	if (!p)
 		return NULL;
-	tolow(p);
 	rp = getfilepath(idf->cwd, p);
 	if (rp) {
 		dir = cache_lookup(idf->dir, rp);
+		if (!dir && rp[0] == '.' && rp[1] == '/')
+			dir = cache_lookup(idf->dir, rp + 2);
 		free(rp);
 	}
 	free(p);
@@ -579,13 +601,20 @@ int idf_access(idf_t idf, const char *fname)
 {
 	char *rp;
 	idfd_t *dir = NULL;
-	if (idf) {
-		rp = getfilepath(idf->cwd, fname);
-		if (rp) {
-			dir = cache_lookup(idf->dir, rp);
-			free(rp);
-		}
+	char *p;
+	if (!idf || !fname)
+		return -1;
+	p = idf_clean_path(idf, fname);
+	if (!p)
+		return -1;
+	rp = getfilepath(idf->cwd, p);
+	if (rp) {
+		dir = cache_lookup(idf->dir, rp);
+		if (!dir && rp[0] == '.' && rp[1] == '/')
+			dir = cache_lookup(idf->dir, rp + 2);
+		free(rp);
 	}
+	free(p);
 	if (!dir)
 		return -1;
 	return 0;

@@ -318,7 +318,7 @@ static int theme_parse_full_path(const char *v, void *data)
 				free(*p); *p = np;
 			} else if (curgame_dir) {
 				struct game *g = game_lookup(curgame_dir);
-				if (g && g->path) {
+				if (g && g->path && !g->idf) {
 					np = getfilepath(g->path, *p);
 					if (!*np)
 						return -1;
