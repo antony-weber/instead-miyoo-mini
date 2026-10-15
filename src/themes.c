@@ -644,6 +644,10 @@ out:
 			val += t->xoff;
 		if (theme_scalables[i].flags & TF_POSY)
 			val += t->yoff;
+		if (theme_scalables[i].val == &game_theme.font_size) {
+			if (opt_min_fsize > 0 && val < opt_min_fsize)
+				val = opt_min_fsize;
+		}
 		*(theme_scalables[i].val) = val;
 	}
 	t->w = w;
@@ -766,6 +770,10 @@ int theme_setvar(char *name, char *val)
 				val += t->xoff;
 	  		if (theme_scalables[i].flags & TF_POSY)
 				val += t->yoff;
+			if (theme_scalables[i].val == &game_theme.font_size) {
+				if (opt_min_fsize > 0 && val < opt_min_fsize)
+					val = opt_min_fsize;
+			}
 			*(theme_scalables[i].val) = val;
 			break;
 		}
@@ -859,11 +867,20 @@ static int game_theme_update_data(void)
 	const char *res = NULL;
 	int idf = idf_only(instead_idf(), 0);
 	if (t->font_name && (t->changed & CHANGED_FONT)) {
+		if (opt_min_fsize > 0 && t->font_size < opt_min_fsize)
+			t->font_size = opt_min_fsize;
+		int sz = FONT_SZ(t->font_size);
+		if (opt_min_fsize > 0 && sz < opt_min_fsize)
+			sz = opt_min_fsize;
 		fnt_free(t->font);
-		if (!(t->font = fnt_load(t->font_name, FONT_SZ(t->font_size)))) {
+		if (!(t->font = fnt_load(t->font_name, sz))) {
 			res = t->font_name;
 			goto err;
 		}
+#if defined(TARGET_MIYOO)
+		fprintf(stderr, "[Theme] Window font size loaded: %d (theme: %d, minfont: %d)\n",
+			sz, t->font_size, opt_min_fsize);
+#endif
 	}
 
 	if (t->inv_font_name && (t->changed & CHANGED_IFONT)) {
@@ -872,6 +889,10 @@ static int game_theme_update_data(void)
 			res = t->inv_font_name;
 			goto err;
 		}
+#if defined(TARGET_MIYOO)
+		fprintf(stderr, "[Theme] Inventory font size loaded: %d (theme: %d)\n",
+			(int)FONT_SZ(t->inv_font_size), t->inv_font_size);
+#endif
 	}
 
 	if (t->menu_font_name && (t->changed & CHANGED_MFONT)) {

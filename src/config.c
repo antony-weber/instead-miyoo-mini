@@ -30,6 +30,7 @@ int opt_fsize = 5;
 #else
 int opt_fsize = 0;
 #endif
+int opt_min_fsize = 15;
 
 #if defined(IOS) || defined(ANDROID) || defined(SAILFISHOS) || defined(WINRT)
 int opt_fs = 1;
@@ -93,6 +94,7 @@ static struct parser cfg_parser[] = {
 	{ "click", parse_int, &opt_click, 0 },
 	{ "music", parse_int, &opt_music, 0 },
 	{ "fscale", parse_int, &opt_fsize, 0 },
+	{ "minfont", parse_int, &opt_min_fsize, 0 },
 	{ "filter", parse_int, &opt_filter, 0 },
 	{ "owntheme", parse_int, &opt_owntheme, 0 },
 	{ "lang", parse_string, &opt_lang, 0 },
@@ -143,11 +145,11 @@ int cfg_save(void)
 	if (!fp)
 		return -1;
 	fprintf(fp, "fs = %d\nhl = %d\nhz = %d\nvol = %d\nautosave = %d\n\
-game = %s\nfscale = %d\nmotion = %d\n\
+game = %s\nfscale = %d\nminfont = %d\nmotion = %d\n\
 click = %d\nmusic = %d\ntheme = %s\n\
 filter = %d\nowntheme = %d\nlang = %s\nkbd = %d\nmode = %dx%d\njustify = %d\nfading = %d\nhires = %d\n",
 		opt_fs, opt_hl, opt_hz, opt_vol, save_autosave,
-		curgame_dir?curgame_dir:"", opt_fsize, opt_motion,
+		curgame_dir?curgame_dir:"", opt_fsize, opt_min_fsize, opt_motion,
 		opt_click, opt_music, curtheme_dir[THEME_GLOBAL]?curtheme_dir[THEME_GLOBAL]:DEFAULT_THEME,
 		opt_filter, save_owntheme, opt_lang, opt_kbd, opt_mode[0], opt_mode[1],
 		opt_justify, opt_fading, opt_hires);

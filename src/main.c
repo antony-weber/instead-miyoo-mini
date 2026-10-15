@@ -73,6 +73,7 @@ static int opt_index = 1;
 
 static int nohires_sw = 0;
 static char *fsize_sw = NULL;
+static char *minfont_sw = NULL;
 
 char *game_sw = NULL;
 char *games_sw = NULL;
@@ -212,6 +213,7 @@ static void usage(void)
 	"    -install [game in zip]\n        Install game from zip archive.\n"
 	"    -appdata [fullpath]\n        Store saves and settings in appdata path. Path must exist!\n"
 	"    -chunksize [size in bytes]\n        Size for audio buffer. Try this if sound lags.\n"
+	"    -minfont [size]\n        Minimum font size for main window text (default: 15, 0 to disable).\n"
 	"    -vsync\n        Enable vsync display output.\n");
 }
 static int profile_load(const char *path);
@@ -405,6 +407,12 @@ int instead_main(int argc, char *argv[])
 				fsize_sw = strdup(argv[++i]);
 			else
 				fsize_sw = NULL;
+		} else if (!strcmp(argv[i], "-minfont")) {
+			FREE(minfont_sw);
+			if (i + 1 < argc)
+				minfont_sw = strdup(argv[++i]);
+			else
+				minfont_sw = NULL;
 		} else if (!strcmp(argv[i], "-window"))
 			window_sw = 1;
 		else if (!strcmp(argv[i], "-debug")) {
@@ -600,6 +608,12 @@ int instead_main(int argc, char *argv[])
 		int i = atoi(fsize_sw);
 		if (i > 0)
 			opt_fsize = (i - 100) / 10;
+	}
+
+	if (minfont_sw) {
+		int mf = atoi(minfont_sw);
+		if (mf >= 0)
+			opt_min_fsize = mf;
 	}
 
 	if (opt_fsize < FONT_MIN_SZ)
@@ -845,6 +859,7 @@ static struct parser profile_parser[] = {
 	{ "mode", parse_string, &mode_sw, 0 },
 	{ "modes", parse_string, &modes_sw, 0 },
 	{ "fontscale", parse_string, &fsize_sw, 0 },
+	{ "minfont", parse_string, &minfont_sw, 0 },
 	{ "renderer", parse_string, &render_sw, 0 },
 	{ "nocursor", parse_int, &nocursor_sw, 0 },
 	{ "dpi", parse_int, &dpi_sw, 0 },
