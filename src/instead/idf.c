@@ -547,7 +547,7 @@ static char *idf_clean_path(idf_t idf, const char *fname)
 		return NULL;
 	tolow(p);
 	unix_path(p);
-	if (idf && idf->path && !strncmp(p, idf->path, strlen(idf->path))) {
+	if (idf && idf->path && !strncasecmp(p, idf->path, strlen(idf->path))) {
 		char *np = p + strlen(idf->path);
 		while (*np == '/') np++;
 		memmove(p, np, strlen(np) + 1);

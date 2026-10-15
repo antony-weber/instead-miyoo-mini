@@ -614,6 +614,8 @@ int instead_main(int argc, char *argv[])
 		int mf = atoi(minfont_sw);
 		if (mf >= 0)
 			opt_min_fsize = mf;
+		FREE(minfont_sw);
+		minfont_sw = NULL;
 	}
 
 	if (opt_fsize < FONT_MIN_SZ)

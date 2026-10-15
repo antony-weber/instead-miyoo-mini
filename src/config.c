@@ -30,7 +30,11 @@ int opt_fsize = 5;
 #else
 int opt_fsize = 0;
 #endif
+#if defined(TARGET_MIYOO)
 int opt_min_fsize = 15;
+#else
+int opt_min_fsize = 0;
+#endif
 
 #if defined(IOS) || defined(ANDROID) || defined(SAILFISHOS) || defined(WINRT)
 int opt_fs = 1;
