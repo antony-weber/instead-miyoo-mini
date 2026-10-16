@@ -1,17 +1,21 @@
-FROM debian:bookworm-slim
+FROM debian:buster
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN dpkg --add-architecture armhf && \
-    apt-get update && \
+RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian buster main" > /etc/apt/sources.list && \
+    echo "deb [check-valid-until=no] http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    dpkg --add-architecture armhf && \
+    apt-get update -qq && \
+    apt-get dist-upgrade -y -qq && \
     apt-get install -y --no-install-recommends \
       build-essential \
       crossbuild-essential-armhf \
       cmake \
       pkg-config \
       zip \
-      ca-certificates \
       git \
+      ca-certificates \
       libsdl2-dev:armhf \
       libsdl2-ttf-dev:armhf \
       libsdl2-image-dev:armhf \

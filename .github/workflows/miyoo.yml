@@ -16,13 +16,17 @@ jobs:
     name: Build INSTEAD for Miyoo Mini (ARMhf)
     runs-on: ubuntu-latest
     container:
-      image: debian:bookworm-slim
+      image: debian:buster
 
     steps:
       - name: Install Build Dependencies
         run: |
+          echo "deb [check-valid-until=no] http://archive.debian.org/debian buster main" > /etc/apt/sources.list
+          echo "deb [check-valid-until=no] http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
           dpkg --add-architecture armhf
           apt-get update -qq
+          apt-get dist-upgrade -y -qq
           apt-get install -y --no-install-recommends \
             build-essential \
             crossbuild-essential-armhf \
